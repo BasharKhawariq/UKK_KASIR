@@ -30,9 +30,9 @@ exports.addTransaksi = async (request, response) => {
             let detailTransaksi = request.body.detail_transaksi
             /** insert diTransaksi to each item of detailTransaksi
             */
-            detailTransaksi.forEach(element => {
-                element.id_transaksi = idTransaksi
-            });
+            for (let i = 0; i < detailTransaksi.length; i++) {
+                detailTransaksi[i].id_transaksi = idTransaksi
+            }
             /** insert all data of detailTransaksi */
             detailTransaksiModel.bulkCreate(detailTransaksi)
                 .then(result => {
@@ -68,15 +68,13 @@ exports.updateTransaksi = async (request, response) => {
         status: request.body.status
     }
     /** prepare parameter transaksi ID */
-    let param = {
-        id_transaksi: request.params.id
-    }
+    let idTransaksi = request.params.id
     /** execute for inserting to transaksi's table */
-    transaksiModel.update(newData, { where: param})
+    transaksiModel.update(newData, { where: { id_transaksi: idTransaksi } })
         .then(async result => {
             /** delete all detailTransaksi based on idTransaksi */
             await detailTransaksiModel.destroy(
-                { where: param }
+                { where: { id_transaksi: idTransaksi } }
             )
             /** store details of transaksi from request
             * (type: array object)
@@ -84,16 +82,16 @@ exports.updateTransaksi = async (request, response) => {
             let detailTransaksi = request.body.detail_transaksi
             /** insert idTransaksi to each item of detailTransaksi
             */
-           let idTransaksi = result.id_transaksi
             for (let i = 0; i < detailTransaksi.length; i++) {
-                detailTransaksi[i].idTransaksi = idTransaksi
+                detailTransaksi[i].id_transaksi = idTransaksi
             }
             /** re-insert all data of detailTransaksi */
             detailTransaksiModel.bulkCreate(detailTransaksi)
                 .then(result => {
                     return response.json({
                         success: true,
-                        message: `Transaction has been updated`
+                        message: `Transaction has been
+    updated`
                     })
                 })
                 .catch(error => {
@@ -117,11 +115,11 @@ exports.deleteTransaksi = async (request, response) => {
     let idTransaksi = request.params.id
     /** delete detailTransaksi using model */
     detailTransaksiModel.destroy(
-        { where: { idTransaksi: idTransaksi } }
+        { where: { id_transaksi: idTransaksi } }
     )
         .then(result => {
             /** delete transaksis data using model */
-            transaksiModel.destroy({ where: { id: idTransaksi } })
+            transaksiModel.destroy({ where: { id_transaksi: idTransaksi } })
                 .then(result => {
                     return response.json({
                         success: true,
@@ -158,13 +156,13 @@ exports.returnMenu = async (request, response) => {
             status: true
         },
         {
-            where: { id: idTransaksi }
+            where: { id_transaksi: idTransaksi }
         }
     )
         .then(result => {
             return response.json({
                 success: true,
-                message: `Book has been returned`
+                message: `Transaksi has been returned`
             })
         })
         .catch(error => {

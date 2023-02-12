@@ -20,7 +20,8 @@ module.exports = (sequelize, DataTypes) => {
   meja.init({
     id_meja: {
       type: DataTypes.INTEGER,
-      primaryKey: true
+      primaryKey: true,
+      autoIncrement: true
     },
     nomor_meja: DataTypes.STRING,
     status: DataTypes.ENUM('tersedia', 'tidak_tersedia')

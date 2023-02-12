@@ -20,7 +20,8 @@ module.exports = (sequelize, DataTypes) => {
   users.init({
     id_user: {
       type: DataTypes.INTEGER,
-      primaryKey: true
+      primaryKey: true,
+      autoIncrement: true
     },
     nama_user: DataTypes.STRING,
     role: DataTypes.ENUM('admin','kasir','manager'),
