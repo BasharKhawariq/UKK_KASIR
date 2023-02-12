@@ -13,7 +13,7 @@ require(`../controllers/transaksi.controller.js`)
 /** create route to add new transaksi book */
 app.post("/", transaksiController.addTransaksi)
 /** create route to update transaksi book based on ID */
-app.put("/:id", transaksiController.updateTransaksi)
+app.put("/update/:id", transaksiController.updateTransaksi)
 /** create toute to delete transaksi book based on ID */
 app.delete("/:id", transaksiController.deleteTransaksi)
 /** create route to return book */

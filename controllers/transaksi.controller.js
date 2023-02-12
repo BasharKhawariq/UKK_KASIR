@@ -1,5 +1,5 @@
 const app = require("../routes/transaksi.route")
-
+const moment = require("moment")
 /** load model for `transaksi` table */
 const transaksiModel = require(`../models/index`).transaksi
 /** load model for `details_transaksi` table */
@@ -12,7 +12,7 @@ const Op = require(`sequelize`).Op
 exports.addTransaksi = async (request, response) => {
     /** prepare data for transaksi table */
     let newData = {
-        tgl_transaksi: request.body.tgl_transaksi,
+        tgl_transaksi: moment().format("YYYY-MM-DD"),
         id_user: request.body.id_user,
         id_meja: request.body.id_meja,
         nama_pelanggan: request.body.nama_pelanggan,
@@ -23,16 +23,16 @@ exports.addTransaksi = async (request, response) => {
     transaksiModel.create(newData)
         .then(result => {
             /** get the latest id of book transaksi*/
-            let idTransaksi = result.id
+            let idTransaksi = result.id_transaksi
             /** store details of book transaksi from request
             * (type: array object)
             */
             let detailTransaksi = request.body.detail_transaksi
             /** insert diTransaksi to each item of detailTransaksi
             */
-            for (let i = 0; i < detailTransaksi.length; i++) {
-                detailTransaksi[i].idTransaksi = idTransaksi
-            }
+            detailTransaksi.forEach(element => {
+                element.id_transaksi = idTransaksi
+            });
             /** insert all data of detailTransaksi */
             detailTransaksiModel.bulkCreate(detailTransaksi)
                 .then(result => {
@@ -61,20 +61,22 @@ inserted`
 exports.updateTransaksi = async (request, response) => {
     /** prepare data for transaksi's table */
     let newData = {
-        tgl_transaksi: current,
+        tgl_transaksi: moment().format("YYYY-MM-DD"),
         id_user: request.body.id_user,
         id_meja: request.body.id_meja,
         nama_pelanggan: request.body.nama_pelanggan,
         status: request.body.status
     }
     /** prepare parameter transaksi ID */
-    let idTransaksi = request.params.id
+    let param = {
+        id_transaksi: request.params.id
+    }
     /** execute for inserting to transaksi's table */
-    transaksiModel.update(newData, { where: { id: idTransaksi } })
+    transaksiModel.update(newData, { where: param})
         .then(async result => {
             /** delete all detailTransaksi based on idTransaksi */
             await detailTransaksiModel.destroy(
-                { where: { idTransaksi: idTransaksi } }
+                { where: param }
             )
             /** store details of transaksi from request
             * (type: array object)
@@ -82,6 +84,7 @@ exports.updateTransaksi = async (request, response) => {
             let detailTransaksi = request.body.detail_transaksi
             /** insert idTransaksi to each item of detailTransaksi
             */
+           let idTransaksi = result.id_transaksi
             for (let i = 0; i < detailTransaksi.length; i++) {
                 detailTransaksi[i].idTransaksi = idTransaksi
             }
@@ -90,8 +93,7 @@ exports.updateTransaksi = async (request, response) => {
                 .then(result => {
                     return response.json({
                         success: true,
-                        message: `Transaction has been
-    updated`
+                        message: `Transaction has been updated`
                     })
                 })
                 .catch(error => {
@@ -178,7 +180,7 @@ exports.getTransaksi = async (request, response) => {
     let data = await transaksiModel.findAll(
         {
             include: [
-                `member`, `admin`,
+                `users`, `meja`,
                 {
                     model: detailTransaksiModel,
                     as: `detail_transaksi`,
