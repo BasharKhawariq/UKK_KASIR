@@ -2,14 +2,18 @@ const app = require("../routes/transaksi.route")
 const moment = require("moment")
 /** load model for `transaksi` table */
 const transaksiModel = require(`../models/index`).transaksi
+const menuModel = require(`../models/index`).menu
 /** load model for `details_transaksi` table */
-const detailTransaksiModel =
-    require(`../models/index`).detail_transaksi
+const detailTransaksiModel = require(`../models/index`).detail_transaksi
 /** load Operator from Sequelize */
 const Op = require(`sequelize`).Op
 
 /** create function for add transaksi */
 exports.addTransaksi = async (request, response) => {
+    let harga
+    let qty
+    let subTotal
+    let total
     /** prepare data for transaksi table */
     let newData = {
         tgl_transaksi: moment().format("YYYY-MM-DD"),
@@ -19,27 +23,42 @@ exports.addTransaksi = async (request, response) => {
         status: request.body.status
     }
 
+    let DetailTransaksi = request.body.detail_transaksi
+    let menu = await menuModel.findAll()
+
     /** execute for inserting to transaksi's table */
-    transaksiModel.create(newData)
+
+    await transaksiModel.create(newData)
         .then(result => {
             /** get the latest id of book transaksi*/
             let idTransaksi = result.id_transaksi
-            /** store details of book transaksi from request
-            * (type: array object)
-            */
-            let detailTransaksi = request.body.detail_transaksi
-            /** insert diTransaksi to each item of detailTransaksi
-            */
-            for (let i = 0; i < detailTransaksi.length; i++) {
-                detailTransaksi[i].id_transaksi = idTransaksi
+            for(j=0; j<DetailTransaksi.length;j++){
+                DetailTransaksi[j].id_transaksi = idTransaksi
             }
+
+            for(i=0; i<DetailTransaksi.length;i++)
+            {
+                let id_menu = DetailTransaksi[i].id_menu
+                if(menu[i].id_menu == id_menu){
+                    harga = menu[i].harga
+                    qty = DetailTransaksi[i].qty
+
+                    subTotal = harga*qty
+                    
+                    console.log(harga)
+                    console.log(qty)
+                    console.log("subtotal: "+subTotal)
+                }
+                total += subTotal
+                console.log("total bayar : "+total)
+            } 
+
             /** insert all data of detailTransaksi */
-            detailTransaksiModel.bulkCreate(detailTransaksi)
+            detailTransaksiModel.bulkCreate(DetailTransaksi)
                 .then(result => {
                     return response.json({
                         success: true,
-                        message: `New Transaction has been
-inserted`
+                        message: `New Transaction has been inserted`
                     })
                 })
                 .catch(error => {
