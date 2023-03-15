@@ -13,3 +13,21 @@ uelize model:seqcreate --name transaksi --attributes id_transaksi:integer,tgl_tr
 5. migration tabel detail_transaksi
 sequelize model:create --name detail_transaksi --attributes id_detail_transaksi:integer,id_transaksi:integer,id_menu:integer,harga:integer
 
+{
+            //     let id_menu = DetailTransaksi[i].id_menu
+            //     if(menu[i].id_menu == id_menu){
+            //         harga = menu[i].harga
+            //         qty = DetailTransaksi[i].qty
+
+            //         subTotal = harga*qty
+                    
+            //         console.log("harga: "+harga)
+            //         console.log("qty: "+qty)
+            //         console.log("subtotal: "+subTotal)
+            //     }
+            //     total += subTotal
+            //     console.log("total bayar : "+total)
+
+
+            // } 
+            // }

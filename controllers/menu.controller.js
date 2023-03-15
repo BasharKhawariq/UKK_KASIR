@@ -6,10 +6,6 @@ const Op = require(`sequelize`).Op
 const path = require(`path`)
 const fs = require(`fs`)
 
-//import auth
-const auth = require("../auth")
-// app.use(auth)
-
 /** create function to read all data */
 exports.getAllMenu = async (request, response) => {
     /** call findAll() to get all data */
@@ -18,7 +14,7 @@ exports.getAllMenu = async (request, response) => {
     return response.json({
         success: true,
         data: menu,
-        message: `All Menus have been loaded`
+        message: `All Menu have been loaded`
     })
 } catch (err) {
         console.log(err);
@@ -79,11 +75,11 @@ exports.addMenu = (request, response) => {
             return response.json({ message: error })
         }
         /** check if file is empty */
-        // if (!request.file) {
-        //     return response.json({
-        //         message: `Nothing to Upload`
-        //     })
-        // }
+         if (!request.file) {
+             return response.json({
+               message: `Nothing to Upload`
+            })
+         }
         /** prepare data from request */
         let newMenu = {
             nama_menu: request.body.nama_menu,
@@ -115,6 +111,7 @@ exports.addMenu = (request, response) => {
 
 /** create function to update menu */
 exports.updateMenu = async (request, response) => {
+    
     /** run upload function */
     upload(request, response, async error => {
         /** check if there are error when upload */
@@ -128,15 +125,17 @@ exports.updateMenu = async (request, response) => {
             nama_menu: request.body.nama_menu,
             jenis: request.body.jenis,
             deskripsi: request.body.deskripsi,
-            harga: request.body.harga
+            harga: request.body.harga,
         }
+
         /** check if file is not empty,
         * it means update data within reupload file
         */
         if (request.file) {
+            let idMenu = request.params.id_menu
             /** get selected menu's data */
             const selectedMenu = await menuModel.findOne({
-                where: { id: id_menu }
+                where: { id_menu: idMenu }
             })
             /** get old filename of image file */
             const oldImageMenu = selectedMenu.image

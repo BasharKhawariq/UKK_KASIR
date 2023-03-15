@@ -1,12 +1,9 @@
 // load model for user table
 const userModel = require('../models/index').users
-
+let md5 = require("md5")
+let jwt = require('jsonwebtoken')
 // load operation from Sequelize
 const Op = require('sequelize').Op
-
-//import auth
-const auth = require("../auth")
-// app.use(auth)
 
 // TODO export sekali aja
 // create function for read all data
@@ -144,4 +141,33 @@ exports.deleteUser = (request, response) => {
             message: error.message
         })
     })
+}
+
+ // autentication
+exports.authentication = async (request, response) => {
+    let data = {
+        username: request.body.username,
+        password: md5(request.body.password)
+    }
+    //validasi (cek data di tabel user)
+    let result = await userModel.findOne({where: data})
+    if (result) {
+        // data ditemukan
+        // payload = data/informasi yg akan dienkripsi
+        let payload = JSON.stringify(result) // koversi bentuk objek -> JSON
+        let secretKey = `Sequelize itu sangat menyenangkan`
+        // generate token
+        let token = jwt.sign(payload, secretKey)
+        return response.json({
+            logged: true,
+            token: token,
+            dataUser: result
+        })
+    } else{
+        // data tidak ditemukan
+        return response.json({
+            logged: false,
+            message: `Invalid username or password`
+        })
+    }
 }

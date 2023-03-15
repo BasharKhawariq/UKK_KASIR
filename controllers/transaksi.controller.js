@@ -12,15 +12,14 @@ const Op = require(`sequelize`).Op
 exports.addTransaksi = async (request, response) => {
     let harga
     let qty
-    let subTotal
-    let total
     /** prepare data for transaksi table */
     let newData = {
         tgl_transaksi: moment().format("YYYY-MM-DD"),
         id_user: request.body.id_user,
         id_meja: request.body.id_meja,
         nama_pelanggan: request.body.nama_pelanggan,
-        status: request.body.status
+        status: request.body.status,
+
     }
 
     let DetailTransaksi = request.body.detail_transaksi
@@ -30,28 +29,20 @@ exports.addTransaksi = async (request, response) => {
 
     await transaksiModel.create(newData)
         .then(result => {
-            /** get the latest id of book transaksi*/
+
             let idTransaksi = result.id_transaksi
             for(j=0; j<DetailTransaksi.length;j++){
                 DetailTransaksi[j].id_transaksi = idTransaksi
-            }
 
-            for(i=0; i<DetailTransaksi.length;i++)
+                for(i=0; i<DetailTransaksi.length;i++)
             {
                 let id_menu = DetailTransaksi[i].id_menu
                 if(menu[i].id_menu == id_menu){
                     harga = menu[i].harga
                     qty = DetailTransaksi[i].qty
-
-                    subTotal = harga*qty
-                    
-                    console.log(harga)
-                    console.log(qty)
-                    console.log("subtotal: "+subTotal)
                 }
-                total += subTotal
-                console.log("total bayar : "+total)
             } 
+            }
 
             /** insert all data of detailTransaksi */
             detailTransaksiModel.bulkCreate(DetailTransaksi)
@@ -160,38 +151,6 @@ exports.deleteTransaksi = async (request, response) => {
         })
 }
 
-/** create function for return transaksi */
-exports.returnMenu = async (request, response) => {
-    /** prepare idTransaksi that will be return */
-    let idTransaksi = request.params.id
-    /** prepare current time for return's time */
-    let today = new Date()
-    let currentDate = `${today.getFullYear()}-${today.getMonth()
-        + 1}-${today.getDate()}`
-    /** update status and date_of_return from transaksi's data */
-    transaksiModel.update(
-        {
-            date_of_return: currentDate,
-            status: true
-        },
-        {
-            where: { id_transaksi: idTransaksi }
-        }
-    )
-        .then(result => {
-            return response.json({
-                success: true,
-                message: `Transaksi has been returned`
-            })
-        })
-        .catch(error => {
-            return response.json({
-                success: false,
-                message: error.message
-            })
-        })
-}
-
 /** create function for get all transaksi data */
 exports.getTransaksi = async (request, response) => {
     let data = await transaksiModel.findAll(
@@ -211,4 +170,27 @@ exports.getTransaksi = async (request, response) => {
         data: data,
         message: `All transaction book have been loaded`
     })
+}
+
+exports.filterTransaksi = async (request, response) => {
+    let start = request.body.start;
+    let end = request.body.end;
+
+    let data = await transaksiModel.findAll({
+        include: [
+            "users",
+            "meja",
+            {
+                model: detailTransaksiModel,
+                as: "detail_transaksi",
+                include:["menu"],
+            },
+        ],
+        where:{
+            tgl_transaksi:{
+                [Op.between]:[start, end],
+            },
+        },
+    });
+    return response.json(data);
 }

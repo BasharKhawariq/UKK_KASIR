@@ -4,10 +4,6 @@ const mejaModel = require('../models/index').meja
 // load operation from Sequelize
 const Op = require('sequelize').Op
 
-//import auth
-const auth = require("../auth")
-// app.use(auth)
-
 // TODO export sekali aja
 // create function for read all data
 exports.getAllMeja = async (request, response) => {
@@ -17,7 +13,7 @@ exports.getAllMeja = async (request, response) => {
         response.json({
             success: true,
             data: mejas,
-            message: 'All mejas have been loaded'
+            message: 'All meja have been loaded'
         })
     } catch (err) {
         console.log(err);
